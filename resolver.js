@@ -77,7 +77,7 @@ _resolver.renderToString = (component, renderer, instance = resolver()) => {
 
 _resolver.render = (component, node, instance = resolver()) => {
     const t = component(instance)
-    m.render(node, t)
+    m.render(document.createElement('div'), t)
     return instance.finish().then(() => {
         // instance.freeze()
         m.mount(node, t)
