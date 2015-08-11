@@ -1,6 +1,8 @@
-import m from './mithril'
+import _m from './mithril'
 
 const containsAllProps = (obj) => Object.keys(obj).reduce((a,name) => a && obj[name] instanceof Function && obj[name].name ==='prop', true)
+
+export const m = _m
 
 export const container = (component, resolve = {}) =>
     (resolver) =>
@@ -77,11 +79,7 @@ _resolver.renderToString = (component, renderer, instance = resolver()) => {
 
 _resolver.render = (component, node, instance = resolver()) => {
     const t = component(instance)
-    m.render(document.createElement('div'), t)
-    return instance.finish().then(() => {
-        // instance.freeze()
-        m.mount(node, t)
-    })
+    m.mount(node, t)
 }
 
 export const resolver = _resolver
