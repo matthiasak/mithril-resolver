@@ -5,7 +5,7 @@
   "main": "dist/resolver.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "patchify": "babel --stage 1 resolver.js > dist/resolver.js & cp mithril.js dist/mithril.js"
+    "patchify": "babel --stage 1 resolver.js > dist/resolver.js & babel --stage 1 mithril.js > dist/mithril.js"
   },
   "repository": {
     "type": "git",
