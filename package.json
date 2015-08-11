@@ -1,32 +1,32 @@
 {
-    "name": "mithril-resolver",
-    "version": "0.0.1",
-    "description": "A React-Resolver-esque Higher Order Component for the Mithril VDOM library to write universal/isomorphic lazy-loading views",
-    "main": "resolver.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/matthiasak/mithril-resolver.git"
-    },
-    "keywords": [
-        "react",
-        "mithril",
-        "es6",
-        "resolver",
-        "react-resolver",
-        "react-transmit",
-        "lazy",
-        "load"
-    ],
-    "author": "Matt Keas (@matthiasak)",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/matthiasak/mithril-resolver/issues"
-    },
-    "homepage": "https://github.com/matthiasak/mithril-resolver#readme",
-    "dependencies": {
-        "mithril-node-render": "^0.3.3"
-    }
+  "name": "mithril-resolver",
+  "version": "0.0.2",
+  "description": "A React-Resolver-esque Higher Order Component for the Mithril VDOM library to write universal/isomorphic lazy-loading views",
+  "main": "resolver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matthiasak/mithril-resolver.git"
+  },
+  "keywords": [
+    "react",
+    "mithril",
+    "es6",
+    "resolver",
+    "react-resolver",
+    "react-transmit",
+    "lazy",
+    "load"
+  ],
+  "author": "Matt Keas (@matthiasak)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/matthiasak/mithril-resolver/issues"
+  },
+  "homepage": "https://github.com/matthiasak/mithril-resolver#readme",
+  "dependencies": {
+    "mithril-node-render": "^0.3.3"
+  }
 }
