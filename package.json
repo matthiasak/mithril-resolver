@@ -26,8 +26,5 @@
   "bugs": {
     "url": "https://github.com/matthiasak/mithril-resolver/issues"
   },
-  "homepage": "https://github.com/matthiasak/mithril-resolver#readme",
-  "dependencies": {
-    "mithril-node-render": "^0.3.3"
-  }
+  "homepage": "https://github.com/matthiasak/mithril-resolver#readme"
 }
