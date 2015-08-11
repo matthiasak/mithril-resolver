@@ -2,7 +2,7 @@
   "name": "mithril-resolver",
   "version": "0.0.6",
   "description": "A React-Resolver-esque Higher Order Component for the Mithril VDOM library to write universal/isomorphic lazy-loading views",
-  "main": "resolver.js",
+  "main": "dist/resolver.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "patchify": "babel --stage 1 resolver.js > dist/resolver.js"
