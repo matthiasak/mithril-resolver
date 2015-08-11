@@ -1,10 +1,8 @@
-const _m = require('./mithril')
+const m = require('./mithril')
 
 const containsAllProps = (obj) => Object.keys(obj).reduce((a,name) => a && obj[name] instanceof Function && obj[name].name ==='prop', true)
 
-export const m = _m
-
-export const container = (component, resolve = {}) =>
+const container = (component, resolve = {}) =>
     (resolver) =>
         m.component({
             controller: function() {
@@ -25,7 +23,7 @@ export const container = (component, resolve = {}) =>
             }
         })
 
-let _resolver  = (states = {}) => {
+let resolver  = (states = {}) => {
     let promises = []
 
     const _await = (_promises = []) => {
@@ -68,7 +66,7 @@ let _resolver  = (states = {}) => {
     }
 }
 
-_resolver.renderToString = (component, renderer, instance = resolver()) => {
+resolver.renderToString = (component, renderer, instance = resolver()) => {
     const t = component(instance)
     renderer(t)
     return instance.finish().then(() => {
@@ -77,9 +75,9 @@ _resolver.renderToString = (component, renderer, instance = resolver()) => {
     })
 }
 
-_resolver.render = (component, node, instance = resolver()) => {
+resolver.render = (component, node, instance = resolver()) => {
     const t = component(instance)
     m.mount(node, t)
 }
 
-export const resolver = _resolver
+module.exports = {resolver, m, container}
