@@ -1,4 +1,4 @@
-import _m from './mithril'
+const _m = require('./mithril')
 
 const containsAllProps = (obj) => Object.keys(obj).reduce((a,name) => a && obj[name] instanceof Function && obj[name].name ==='prop', true)
 
