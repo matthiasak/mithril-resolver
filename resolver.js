@@ -1,8 +1,6 @@
 const m = require('./mithril')
-
 const containsAllProps = (obj) => Object.keys(obj).reduce((a,name) => a && obj[name] instanceof Function && obj[name].name ==='prop', true)
-
-const container = (component, resolve = {}) =>
+const container = (component, queries = {}) =>
     (resolver) =>
         m.component({
             controller: function() {
@@ -11,15 +9,18 @@ const container = (component, resolve = {}) =>
                 // if the value is undefined, mithril passes `this`
                 // to the `view()` as `ctrl`
                 m.startComputation()
-                resolver.resolve(resolve).then((_resolve) => {
-                    Object.assign(resolve, _resolve)
+                let done = m.prop(false)
+                resolver.resolve(queries).then(() => {
+                    done(true)
                     m.endComputation()
                 })
-                return component.controller.call(this)
+                component.controller.call(this)
+                return done
             },
-            view: function(ctrl, args) {
-                if(!containsAllProps(resolve)) return
-                return m.component(component, {...args, ...resolve, resolver})
+            view: function(done, args) {
+                if(!done()) return null;
+
+                return m.component(component, {...args, resolver, ...resolver.getState()})
             }
         })
 
@@ -48,21 +49,26 @@ let resolver  = (states = {}) => {
         }
 
         let f = []
-        const promises = keys.reduce((a, name) => {
-            let p = m.prop()
-            if(props[name] instanceof Function && props[name]().then){
-                f.push(props[name]().then(p))
-                a[name] = p
-            }
-            return a
-        }, {})
+        keys.forEach((name) => {
+            let p = m.prop(),
+                x = props[name],
+                fn = x instanceof Function && x()
 
-        return _await(f).then(() => promises)
+            if(fn && fn.then instanceof Function){
+                f.push(fn.then(p))
+                states[name] = p
+            }
+        })
+
+        return _await(f)
     }
+
+    const getState = () => states
 
     return {
         finish,
-        resolve
+        resolve,
+        getState
     }
 }
 
@@ -70,7 +76,6 @@ resolver.renderToString = (component, renderer, instance = resolver()) => {
     const t = component(instance)
     renderer(t)
     return instance.finish().then(() => {
-        // instance.freeze()
         return renderer(t)
     })
 }

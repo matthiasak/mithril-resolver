@@ -3,15 +3,13 @@
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var m = require('./mithril');
-
 var containsAllProps = function containsAllProps(obj) {
     return Object.keys(obj).reduce(function (a, name) {
         return a && obj[name] instanceof Function && obj[name].name === 'prop';
     }, true);
 };
-
 var container = function container(component) {
-    var resolve = arguments[1] === undefined ? {} : arguments[1];
+    var queries = arguments[1] === undefined ? {} : arguments[1];
     return function (resolver) {
         return m.component({
             controller: function controller() {
@@ -20,15 +18,18 @@ var container = function container(component) {
                 // if the value is undefined, mithril passes `this`
                 // to the `view()` as `ctrl`
                 m.startComputation();
-                resolver.resolve(resolve).then(function (_resolve) {
-                    Object.assign(resolve, _resolve);
+                var done = m.prop(false);
+                resolver.resolve(queries).then(function () {
+                    done(true);
                     m.endComputation();
                 });
-                return component.controller.call(this);
+                component.controller.call(this);
+                return done;
             },
-            view: function view(ctrl, args) {
-                if (!containsAllProps(resolve)) return;
-                return m.component(component, _extends({}, args, resolve, { resolver: resolver }));
+            view: function view(done, args) {
+                if (!done()) return null;
+
+                return m.component(component, _extends({}, args, { resolver: resolver }, resolver.getState()));
             }
         });
     };
@@ -63,23 +64,28 @@ var resolver = function resolver() {
         }
 
         var f = [];
-        var promises = keys.reduce(function (a, name) {
-            var p = m.prop();
-            if (props[name] instanceof Function && props[name]().then) {
-                f.push(props[name]().then(p));
-                a[name] = p;
-            }
-            return a;
-        }, {});
+        keys.forEach(function (name) {
+            var p = m.prop(),
+                x = props[name],
+                fn = x instanceof Function && x();
 
-        return _await(f).then(function () {
-            return promises;
+            if (fn && fn.then instanceof Function) {
+                f.push(fn.then(p));
+                states[name] = p;
+            }
         });
+
+        return _await(f);
+    };
+
+    var getState = function getState() {
+        return states;
     };
 
     return {
         finish: finish,
-        resolve: resolve
+        resolve: resolve,
+        getState: getState
     };
 };
 
@@ -89,7 +95,6 @@ resolver.renderToString = function (component, renderer) {
     var t = component(instance);
     renderer(t);
     return instance.finish().then(function () {
-        // instance.freeze()
         return renderer(t);
     });
 };
