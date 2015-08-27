@@ -1,39 +1,43 @@
 {
-  "name": "mithril-resolver",
-  "version": "0.0.10",
-  "description": "A React-Resolver-esque Higher Order Component for the Mithril VDOM library to write universal/isomorphic lazy-loading views",
-  "main": "dist/resolver.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "patchify": "babel --stage 1 resolver.js > dist/resolver.js & babel --stage 1 mithril.js > dist/mithril.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/matthiasak/mithril-resolver.git"
-  },
-  "keywords": [
-    "react",
-    "mithril",
-    "es6",
-    "resolver",
-    "react-resolver",
-    "react-transmit",
-    "lazy",
-    "load"
-  ],
-  "author": {
-    "name": "Matt Keas",
-    "url": "@matthiasak"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/matthiasak/mithril-resolver/issues"
-  },
-  "homepage": "https://github.com/matthiasak/mithril-resolver#readme",
-  "readme": "### Mithril-Resolver\n\n---\n\n![](https://david-dm.org/matthiasak/mithril-resolver.svg)\n\nUsing a slightly customized Mithril (using unmerged Pull Requests that [enable Mithril to bootstrap existing DOM nodes instead of completely redrawing HTML sent from the server](https://medium.com/@matthiasak/mithril-isomorphic-universal-experiment-cb645d1a9238)), I decided to try and create a [react-resolver-esque](https://github.com/ericclemmons/react-resolver/) library that allows the developer to create HOCs (Higher Order Components) that can lazy-load data before items are rendered to the page. \n\nThis is not only a potential benfit to rendering performance (as it does not re-render on the client until all the Promises are resolved, thus rendering once), but it allows developers to write isomorphic/universal components that can be used on the server or the client.\n\nThese components, since they define the data they need for themselves, allows components to be almost \"Plug n' Play\". The developer no longer has to pass data down to the rendering/controllers of the app by some routing mechanism.\n\nRepeating that argument in a better light: The route callbacks on client _or_ server do not need to be aware of what data is needed for that view, only which components are to be drawn!\n\n> Note: Mithril-Resolver assumes you are using some kind of babel/browserify/webpack buildstep to transform ES6 into legacy-compatible ES5. You should also have a polyfill for native `Promise` objects in browser-side code.\n\n---\n\n### Example Mithril component\n\n```js\nlet name = {\n    controller: () => {\n        return {name: m.prop('Matt')}\n    },\n    view: (ctrl, args) => m('div', [\n        'hello world!',\n        m('span', 'my name is'),\n        m('bold', ctrl.name())\n    ])\n}\n```\n\nThe above is a typical Mithril `component`. It is synchronous in nature, and here I am using a simple `m.prop()` to store my name.\n\nIn Mithril-Resolver, we wrap the component with a data source inside a container (`container(component, data)`):\n\n```js\nlet data = {\n    name: () => new Promise(res => \n            setTimeout(res.bind(null, 'matt'))\n        , 3000)\n}\n\nlet component = {\n    controller: () => {\n        return {}\n    },\n    view: (ctrl, args) => m('div', [\n        'hello world!',\n        m('span', 'my name is'),\n        m('bold', args.name())\n    ])\n}\n\nlet name = container(component, data)\n```\n\nThings to note:\n\n1. The `view()` in the `component` uses `args.name()` instead of `ctrl.name()`\n2. Each entry in the `data` object is a function the returns a \"thenable\". In my case here, I am returning a native `Promise` object. [^1] \n3. The \"prop\" `args.name()` should give you the value that the `name` entry in `data` resolves to.\n\n> Footnotes:\n> 1. You can use `Promise`s in newer browsers and in Node, and there are polyfills for them to support legacy browsers. Check out Babel's polyfill, which involves the `corejs` library. The code in Mithril-Resolver expects support of native `Promise`.\n\n### Rendering with Mithril-Resolver\n\nBrowser:\n\n```js\nimport {resolver, container} from './resolver'\nconst qs = (sel, el) => (el || document).querySelector(sel)\n\nresolver.render(name, qs('.container'))\n```\n\nServer (an Express `app`): \n\n```js\nimport {resolver, container} from './resolver'\nimport render from 'mithril-node-renderer'\n\nconst index = (html) => `\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Test</title>\n    </head>\n    <body>${html}</body>\n</html>\n`\n\napp.get('name', (req, res) => {\n    resolver.renderToString(name, render).then(html => res.send(index(html)))\n})\n```\n\n### Example universal/isomorphic app\n\nSee http://github.com/matthiasak/wrinklefree-mithril\n\n---\n\n#### License\n\nMIT.\n",
-  "readmeFilename": "README.md",
-  "gitHead": "6a7cb860fd3ba5f3c11a1c90c3a06f37fc87518a",
-  "_id": "mithril-resolver@0.0.9",
-  "_shasum": "ff39c23ac007ef271c58d2eea4116c7b6d81fb11",
-  "_from": "mithril-resolver@*"
+    "name": "mithril-resolver",
+    "version": "0.0.10",
+    "description": "A React-Resolver-esque Higher Order Component for the Mithril VDOM library to write universal/isomorphic lazy-loading views",
+    "main": "dist/resolver.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "watch": "chokidar-cmd -c 'npm run patchify' -t .",
+        "patchify": "babel --stage 1 resolver.js > dist/resolver.js",
+        "setup": "npm run global_installs && npm run linkup",
+        "global_installs": "npm install -g autoprefixer@^5.2.0 bower@^1.4.1 babel-runtime@^5.6.5 babel@^5.6.7 babelify@^6.1.1 browserify@^10.2.0 chai@^2.3.0 chokidar-cmd@^1.1.0 csswring@^3.0.5 mocha@^2.2.5 nodemon@^1.3.7 postcss@^4.1.11 postcss-calc@^4.0.1 postcss-cli@^1.3.1 postcss-conditionals@^1.2.0 postcss-each@^0.2.0 postcss-for@^1.0.1 postcss-import@^5.2.2 postcss-mixins@^0.3.0 postcss-nested@^0.3.1 postcss-simple-extend@^0.3.1 postcss-simple-vars@^0.3.0 uglify-js@^2.4.23 uglifyify@^3.0.1 watchify@^3.2.1",
+        "linkup": "npm link autoprefixer babel-runtime babel babelify browserify chai chokidar-cmd csswring mocha nodemon postcss postcss-calc postcss-cli postcss-conditionals postcss-each postcss-for postcss-import postcss-mixins postcss-nested postcss-simple-extend postcss-simple-vars uglify-js uglifyify watchify;"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/matthiasak/mithril-resolver.git"
+    },
+    "keywords": [
+        "react",
+        "mithril",
+        "es6",
+        "resolver",
+        "react-resolver",
+        "react-transmit",
+        "lazy",
+        "load"
+    ],
+    "author": {
+        "name": "Matt Keas",
+        "url": "@matthiasak"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/matthiasak/mithril-resolver/issues"
+    },
+    "homepage": "https://github.com/matthiasak/mithril-resolver#readme",
+    "readme": "### Mithril-Resolver\n\n---\n\n![](https://david-dm.org/matthiasak/mithril-resolver.svg)\n\nUsing a slightly customized Mithril (using unmerged Pull Requests that [enable Mithril to bootstrap existing DOM nodes instead of completely redrawing HTML sent from the server](https://medium.com/@matthiasak/mithril-isomorphic-universal-experiment-cb645d1a9238)), I decided to try and create a [react-resolver-esque](https://github.com/ericclemmons/react-resolver/) library that allows the developer to create HOCs (Higher Order Components) that can lazy-load data before items are rendered to the page. \n\nThis is not only a potential benfit to rendering performance (as it does not re-render on the client until all the Promises are resolved, thus rendering once), but it allows developers to write isomorphic/universal components that can be used on the server or the client.\n\nThese components, since they define the data they need for themselves, allows components to be almost \"Plug n' Play\". The developer no longer has to pass data down to the rendering/controllers of the app by some routing mechanism.\n\nRepeating that argument in a better light: The route callbacks on client _or_ server do not need to be aware of what data is needed for that view, only which components are to be drawn!\n\n> Note: Mithril-Resolver assumes you are using some kind of babel/browserify/webpack buildstep to transform ES6 into legacy-compatible ES5. You should also have a polyfill for native `Promise` objects in browser-side code.\n\n---\n\n### Example Mithril component\n\n```js\nlet name = {\n    controller: () => {\n        return {name: m.prop('Matt')}\n    },\n    view: (ctrl, args) => m('div', [\n        'hello world!',\n        m('span', 'my name is'),\n        m('bold', ctrl.name())\n    ])\n}\n```\n\nThe above is a typical Mithril `component`. It is synchronous in nature, and here I am using a simple `m.prop()` to store my name.\n\nIn Mithril-Resolver, we wrap the component with a data source inside a container (`container(component, data)`):\n\n```js\nlet data = {\n    name: () => new Promise(res => \n            setTimeout(res.bind(null, 'matt'))\n        , 3000)\n}\n\nlet component = {\n    controller: () => {\n        return {}\n    },\n    view: (ctrl, args) => m('div', [\n        'hello world!',\n        m('span', 'my name is'),\n        m('bold', args.name())\n    ])\n}\n\nlet name = container(component, data)\n```\n\nThings to note:\n\n1. The `view()` in the `component` uses `args.name()` instead of `ctrl.name()`\n2. Each entry in the `data` object is a function the returns a \"thenable\". In my case here, I am returning a native `Promise` object. [^1] \n3. The \"prop\" `args.name()` should give you the value that the `name` entry in `data` resolves to.\n\n> Footnotes:\n> 1. You can use `Promise`s in newer browsers and in Node, and there are polyfills for them to support legacy browsers. Check out Babel's polyfill, which involves the `corejs` library. The code in Mithril-Resolver expects support of native `Promise`.\n\n### Rendering with Mithril-Resolver\n\nBrowser:\n\n```js\nimport {resolver, container} from './resolver'\nconst qs = (sel, el) => (el || document).querySelector(sel)\n\nresolver.render(name, qs('.container'))\n```\n\nServer (an Express `app`): \n\n```js\nimport {resolver, container} from './resolver'\nimport render from 'mithril-node-renderer'\n\nconst index = (html) => `\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Test</title>\n    </head>\n    <body>${html}</body>\n</html>\n`\n\napp.get('name', (req, res) => {\n    resolver.renderToString(name, render).then(html => res.send(index(html)))\n})\n```\n\n### Example universal/isomorphic app\n\nSee http://github.com/matthiasak/wrinklefree-mithril\n\n---\n\n#### License\n\nMIT.\n",
+    "readmeFilename": "README.md",
+    "gitHead": "6a7cb860fd3ba5f3c11a1c90c3a06f37fc87518a",
+    "_id": "mithril-resolver@0.0.9",
+    "_shasum": "ff39c23ac007ef271c58d2eea4116c7b6d81fb11",
+    "_from": "mithril-resolver@*"
 }
