@@ -1,6 +1,6 @@
 {
   "name": "mithril-resolver",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "A React-Resolver-esque Higher Order Component for the Mithril VDOM library to write universal/isomorphic lazy-loading views",
   "repository": {
     "type": "git",
