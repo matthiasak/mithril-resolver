@@ -2,8 +2,12 @@
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var m = (function app(window, undefined) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var m = exports.m = (function app(window, undefined) {
     "use strict";
+
     var VERSION = "v0.2.1";
     function isFunction(object) {
         return typeof object === "function";
@@ -47,7 +51,7 @@ var m = (function app(window, undefined) {
     function getAttributes(node) {
         return slice(node.attributes).reduce(function (a, v) {
             if (v.name === 'class') {
-                a.className = a["class"];
+                a.className = a.class;
             } else {
                 a[v.name] = v.value;
             }
@@ -130,8 +134,9 @@ var m = (function app(window, undefined) {
 
         return cell;
     }
-    function forEach(list, f) {
-        if (list === undefined) list = [];
+    function forEach() {
+        var list = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var f = arguments[1];
 
         for (var i = 0; i < list.length && !f(list[i], i++);) {}
     }
@@ -188,8 +193,9 @@ var m = (function app(window, undefined) {
             } : { action: INSERTION, index: i };
         });
         var actions = [];
-        for (var prop in existing) actions.push(existing[prop]);
-        var changes = actions.sort(sortChanges),
+        for (var prop in existing) {
+            actions.push(existing[prop]);
+        }var changes = actions.sort(sortChanges),
             newCached = new Array(cached.length);
         newCached.nodes = cached.nodes.slice();
 
@@ -485,8 +491,9 @@ var m = (function app(window, undefined) {
 
     function markViews(data, cached, views, controllers) {
         var cachedControllers = cached && cached.controllers;
-        while (data.view != null) data = checkView(data, data.view.$original || data.view, cached, cachedControllers, controllers, views);
-        return data;
+        while (data.view != null) {
+            data = checkView(data, data.view.$original || data.view, cached, cachedControllers, controllers, views);
+        }return data;
     }
 
     function buildObject(data, cached, editable, parentElement, index, shouldReattach, namespace, configs) {
@@ -797,8 +804,9 @@ var m = (function app(window, undefined) {
         return output;
     }
     m.component = function (component) {
-        for (var args = [], i = 1; i < arguments.length; i++) args.push(arguments[i]);
-        return parameterize(component, args);
+        for (var args = [], i = 1; i < arguments.length; i++) {
+            args.push(arguments[i]);
+        }return parameterize(component, args);
     };
     m.mount = m.module = function (root, component) {
         if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
@@ -983,8 +991,9 @@ var m = (function app(window, undefined) {
                         var args = arg1 || {};
                         var queryIndex = currentRoute.indexOf("?");
                         var params = queryIndex > -1 ? parseQueryString(currentRoute.slice(queryIndex + 1)) : {};
-                        for (var i in args) params[i] = args[i];
-                        var querystring = buildQueryString(params);
+                        for (var i in args) {
+                            params[i] = args[i];
+                        }var querystring = buildQueryString(params);
                         var currentPath = queryIndex > -1 ? currentRoute.slice(0, queryIndex) : currentRoute;
                         if (querystring) currentRoute = currentPath + (currentPath.indexOf("?") === -1 ? "?" : "&") + querystring;
 
@@ -1058,8 +1067,9 @@ var m = (function app(window, undefined) {
 
         var currentTarget = e.currentTarget || e.srcElement;
         var args = m.route.mode === "pathname" && currentTarget.search ? parseQueryString(currentTarget.search.slice(1)) : {};
-        while (currentTarget && currentTarget.nodeName.toUpperCase() !== "A") currentTarget = currentTarget.parentNode;
-        m.route(currentTarget[m.route.mode].slice(modes[m.route.mode].length), args);
+        while (currentTarget && currentTarget.nodeName.toUpperCase() !== "A") {
+            currentTarget = currentTarget.parentNode;
+        }m.route(currentTarget[m.route.mode].slice(modes[m.route.mode].length), args);
     }
     function setScroll() {
         if (m.route.mode !== "hash" && $location.hash) $location.hash = $location.hash;else window.scrollTo(0, 0);
@@ -1226,56 +1236,48 @@ var m = (function app(window, undefined) {
         }
 
         function fire() {
-            var _again = true;
+            // check if it's a thenable
+            var then;
+            try {
+                then = promiseValue && promiseValue.then;
+            } catch (e) {
+                m.deferred.onerror(e);
+                promiseValue = e;
+                state = REJECTING;
+                return fire();
+            }
 
-            _function: while (_again) {
-                then = undefined;
-                _again = false;
-
-                // check if it's a thenable
-                var then;
+            thennable(then, function () {
+                state = RESOLVING;
+                fire();
+            }, function () {
+                state = REJECTING;
+                fire();
+            }, function () {
                 try {
-                    then = promiseValue && promiseValue.then;
+                    if (state === RESOLVING && isFunction(successCallback)) {
+                        promiseValue = successCallback(promiseValue);
+                    } else if (state === REJECTING && isFunction(failureCallback)) {
+                        promiseValue = failureCallback(promiseValue);
+                        state = RESOLVING;
+                    }
                 } catch (e) {
                     m.deferred.onerror(e);
                     promiseValue = e;
-                    state = REJECTING;
-                    _again = true;
-                    continue _function;
+                    return finish();
                 }
 
-                thennable(then, function () {
-                    state = RESOLVING;
-                    fire();
-                }, function () {
-                    state = REJECTING;
-                    fire();
-                }, function () {
-                    try {
-                        if (state === RESOLVING && isFunction(successCallback)) {
-                            promiseValue = successCallback(promiseValue);
-                        } else if (state === REJECTING && isFunction(failureCallback)) {
-                            promiseValue = failureCallback(promiseValue);
-                            state = RESOLVING;
-                        }
-                    } catch (e) {
-                        m.deferred.onerror(e);
-                        promiseValue = e;
-                        return finish();
-                    }
-
-                    if (promiseValue === self) {
-                        promiseValue = TypeError();
-                        finish();
-                    } else {
-                        thennable(then, function () {
-                            finish(RESOLVED);
-                        }, finish, function () {
-                            finish(state === RESOLVING && RESOLVED);
-                        });
-                    }
-                });
-            }
+                if (promiseValue === self) {
+                    promiseValue = TypeError();
+                    finish();
+                } else {
+                    thennable(then, function () {
+                        finish(RESOLVED);
+                    }, finish, function () {
+                        finish(state === RESOLVING && RESOLVED);
+                    });
+                }
+            });
         }
     }
     m.deferred.onerror = function (e) {
@@ -1374,7 +1376,7 @@ var m = (function app(window, undefined) {
             }
 
             var data = options.method === "GET" || !options.data ? "" : options.data;
-            if (data && (!isString(data) && data.constructor !== window.FormData)) {
+            if (data && !isString(data) && data.constructor !== window.FormData) {
                 throw new Error("Request data should be either be a string or FormData. Check the `serialize` option in `m.request`");
             }
             xhr.send(data);
@@ -1466,34 +1468,38 @@ var containsAllProps = function containsAllProps(obj) {
         return a && obj[name] instanceof Function && obj[name].name === 'prop';
     }, true);
 };
-var container = function container(component) {
+var container = exports.container = function container(component) {
     var queries = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-    return function (resolver) {
-        return m.component({
-            controller: function controller() {
-                // run the controller on this controller,
-                // then return that value
-                // if the value is undefined, mithril passes `this`
-                // to the `view()` as `ctrl`
-                m.startComputation();
-                var done = m.prop(false);
-                resolver.resolve(queries).then(function () {
-                    done(true);
-                    m.endComputation();
-                });
-                component.controller.call(this);
-                return done;
-            },
-            view: function view(done, args) {
-                if (!done()) return null;
+    var instance = arguments.length <= 2 || arguments[2] === undefined ? resolver() : arguments[2];
 
-                return m.component(component, _extends({}, args, { resolver: resolver }, resolver.getState()));
-            }
-        });
-    };
+    var x = m.component({
+        controller: function controller() {
+            // run the controller on this controller,
+            // then return that value
+            // if the value is undefined, mithril passes `this`
+            // to the `view()` as `ctrl`
+            m.startComputation();
+            var done = m.prop(false);
+            instance.resolve(queries).then(function () {
+                done(true);
+                m.endComputation();
+            });
+            return _extends({}, component.controller.call(this), { done: done, instance: instance });
+        },
+        view: function view(_ref, args) {
+            var done = _ref.done;
+            var instance = _ref.instance;
+
+            if (!done()) return null;
+
+            return m.component(component, _extends({}, args, { instance: instance }, instance.getState()));
+        }
+    });
+    x.__mithril_resolver_container = true; // used in detection for auto-wrapping
+    return x;
 };
 
-var resolver = function resolver() {
+var resolver = exports.resolver = function resolver() {
     var states = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
     var promises = [];
@@ -1543,23 +1549,25 @@ var resolver = function resolver() {
     return { finish: finish, resolve: resolve, getState: getState };
 };
 
-resolver.renderToString = function (component, renderer) {
-    var instance = arguments.length <= 2 || arguments[2] === undefined ? resolver() : arguments[2];
+// resolver.renderToString = (component, renderer, instance = resolver()) => {
+//     const t = component(instance)
+//     renderer(t)
+//     return instance.finish().then(() => {
+//         return renderer(t)
+//     })
+// }
 
-    var t = component(instance);
-    renderer(t);
-    return instance.finish().then(function () {
-        console.log(instance.getState());
-        return renderer(t);
-    });
+var wrap = exports.wrap = function wrap(view) {
+    var controller = arguments.length <= 1 || arguments[1] === undefined ? function () {
+        return {};
+    } : arguments[1];
+    var data = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+    var instance = arguments[3];
+    return container({ view: view, controller: controller }, data, instance);
 };
 
 resolver.render = function (component, node) {
-    var instance = arguments.length <= 2 || arguments[2] === undefined ? resolver() : arguments[2];
+    if (!component.__mithril_resolver_container) component = wrap(component);
 
-    var t = component(instance);
-    m.mount(node, t);
+    m.mount(node, component);
 };
-
-module.exports = { resolver: resolver, m: m, container: container };
-
